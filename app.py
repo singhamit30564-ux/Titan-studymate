@@ -7,12 +7,11 @@ st.title("🎓 Titan StudyMate: AI Doubt Solver")
 st.markdown("Class 1-12 ke liye tera personal AI Teacher! 🚀")
 
 # API Key Load (Secrets se)
-# Note: Streamlit Cloud mein Secrets mein 'GOOGLE_API_KEY' add karna mat bhoolna!
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
 except KeyError:
-    st.error("⚠️ API Key missing! Please add GOOGLE_API_KEY in Streamlit Secrets.")
+    st.error("️ API Key missing! Please add GOOGLE_API_KEY in Streamlit Secrets.")
     st.stop()
 
 # Sidebar Settings
@@ -29,8 +28,8 @@ if st.button("Solve Doubt 🚀", use_container_width=True):
     if user_input.strip():
         with st.spinner("AI soch raha hai... thoda wait karo..."):
             try:
-                # Gemini Model Setup
-                model = genai.GenerativeModel('gemini-pro')
+                # UPDATED: Using gemini-1.5-flash (latest model)
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
                 # Smart Prompt (Hinglish mein simple explanation ke liye)
                 prompt = f"""You are a friendly, encouraging, and expert teacher for a {grade} student. 
