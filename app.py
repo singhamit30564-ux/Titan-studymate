@@ -4,14 +4,17 @@ import google.generativeai as genai
 # Page Setup
 st.set_page_config(page_title="Titan StudyMate AI", page_icon="🎓", layout="wide")
 st.title("🎓 Titan StudyMate: AI Doubt Solver")
-st.markdown("Class 1-12 ke liye tera personal AI Teacher! 🚀")
+st.markdown("Class 1-12 ke liye tera personal AI Teacher! ")
 
-# API Key Load (Secrets se)
+# API Key Load
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
 except KeyError:
     st.error("️ API Key missing! Please add GOOGLE_API_KEY in Streamlit Secrets.")
+    st.stop()
+except Exception as e:
+    st.error(f"️ API Configuration Error: {e}")
     st.stop()
 
 # Sidebar Settings
@@ -28,24 +31,36 @@ if st.button("Solve Doubt 🚀", use_container_width=True):
     if user_input.strip():
         with st.spinner("AI soch raha hai... thoda wait karo..."):
             try:
-                # UPDATED: Using gemini-1.5-flash (latest model)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                # Try different models
+                models_to_try = ['gemini-pro', 'models/gemini-pro', 'gemini-1.5-flash', 'models/gemini-1.5-flash']
+                model = None
                 
-                # Smart Prompt (Hinglish mein simple explanation ke liye)
+                for model_name in models_to_try:
+                    try:
+                        model = genai.GenerativeModel(model_name)
+                        break
+                    except:
+                        continue
+                
+                if model is None:
+                    st.error("❌ Koi bhi model available nahi hai. API key check karo!")
+                    st.stop()
+                
+                # Smart Prompt
                 prompt = f"""You are a friendly, encouraging, and expert teacher for a {grade} student. 
-                The subject is {subject}. 
-                Explain the following doubt clearly, simply, and step-by-step in Hinglish (Hindi + English mix) 
-                so a young student can easily understand. Use real-life examples. Keep it under 300 words.
-                
-                Student's Doubt: {user_input}"""
+The subject is {subject}. 
+Explain the following doubt clearly, simply, and step-by-step in Hinglish (Hindi + English mix) 
+so a young student can easily understand. Use real-life examples. Keep it under 300 words.
+
+Student's Doubt: {user_input}"""
                 
                 response = model.generate_content(prompt)
-                
                 st.success("✅ Here is your answer:")
                 st.markdown(response.text)
                 
             except Exception as e:
                 st.error(f"Oops! Kuch gadbad ho gayi: {e}")
+                st.info("💡 Tip: Check if your API key is valid and has Gemini API access.")
     else:
         st.warning("⚠️ Pehle question toh likho bhai!")
 
