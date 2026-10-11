@@ -1,72 +1,48 @@
-# Titan-studymate
-# 🎓 Titan StudyMate: AI Doubt Solver
+# Titan StudyMate — Assembly Edition
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.20+-red.svg)
-![Gemini AI](https://img.shields.io/badge/AI-Google_Gemini_Pro-green.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+Titan StudyMate is a small AI study helper for students in Classes 1–12. It asks Google Gemini to explain a student's question in clear, friendly Hinglish, tailored to the selected class and subject.
 
-> **"Empowering the next generation of 'Type C' minds with accessible, personalized AI education."**
+The application has been rewritten as a **single x86-64 Linux GNU assembly program**. Its HTTP server, form parsing, HTML rendering, prompt construction, JSON escaping/parsing, and response handling are implemented in `src/titan_studymate.S`. The HTML and CSS are embedded as read-only data in that assembly source; there is no Python, JavaScript, or separate frontend runtime. `curl` is used as the HTTPS/TLS transport to the Gemini API.
 
-## 📖 About The Project
-**Titan StudyMate** is a lightweight, AI-powered personal tutor designed specifically for students from Class 1 to 12. Built with the vision of making advanced learning accessible, it breaks down complex doubts into simple, step-by-step explanations in **Hinglish** (Hindi + English mix), making learning natural and engaging for Indian students.
+## Requirements
 
-No heavy installations, no complex setups. Just pure, focused learning.
+- 64-bit Linux on x86-64
+- GCC and GNU binutils
+- `make`
+- `curl`
+- A Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
-## ✨ Features
-- 🎯 **Grade & Subject Specific:** Tailored explanations based on the student's exact class (1-12) and subject.
-- 🗣️ **Hinglish Support:** Explains concepts in a friendly, conversational Hinglish style, just like a real tutor.
-- 🛡️ **Secure by Design:** API keys are managed securely via Streamlit Secrets, ensuring zero exposure.
-- 📱 **Device Agnostic:** Optimized to run smoothly even on low-end devices and tablets (tested on mobile code editors!).
-- ⚡ **Lightning Fast:** Powered by Google's Gemini Pro model for quick, accurate, and context-aware responses.
+## Build and run
 
-## 🛠️ Tech Stack
-- **Frontend:** Streamlit
-- **Backend:** Python
-- **AI Engine:** Google Generative AI (Gemini Pro)
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.8 or higher
-- A Google Gemini API Key (Get it free from [Google AI Studio](https://makersuite.google.com/app/apikey))
-
-### Installation
-1. Clone the repository:
-```bash
-   git clone https://github.com/your-username/titan-studymate.git
-   cd titan-studymate
-```
-2. Install the required dependencies:
-```bash
-   pip install -r requirements.txt
-```
-3. Set up your API Key:
-   - If running locally, create a file named `.streamlit/secrets.toml` and add:
-```toml
-     GOOGLE_API_KEY = "your_actual_api_key_here"
-```
-   - If deploying on **Streamlit Cloud**, go to *Settings > Secrets* and paste the same TOML format.
-
-### Running the App
-```bash
-streamlit run app.py
+```sh
+make
+GOOGLE_API_KEY="your_api_key" ./build/titan-studymate
 ```
 
-## 💡 How to Use
-1. Select your **Class** and **Subject** from the sidebar.
-2. Type your doubt in the text area (e.g., *"Bhai, photosynthesis kaise hota hai?"* or *"Solve 2x + 5 = 15"*).
-3. Click **"Solve Doubt 🚀"** and get an instant, easy-to-understand explanation!
+Then open <http://localhost:8501>. The server binds to `0.0.0.0` so it can also run in a container or hosted preview.
 
-## 🌍 The Vision
-This project is part of a larger mission: to build an ecosystem where young learners naturally develop logical, analytical, and "Type C" thinking from an early age, without the friction of traditional, boring educational tools. 
+Configuration is read from environment variables:
 
-## 🤝 Contributing
-Contributions are what make the open-source community such an amazing place to learn and build. Any contributions you make are **greatly appreciated**.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `GOOGLE_API_KEY` | *(unset)* | Required to request Gemini answers. The web form still loads without it and displays setup guidance if submitted. |
+| `PORT` | `8501` | HTTP listen port (1–65535). |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model name used by the REST request. |
 
-## 📜 License
-Distributed under the MIT License. See `LICENSE` for more information.
+For example:
 
----
-**Built with ❤️ and ☕ by Shivay Singh**  
-*Founder, Titan Ecosystem*
+```sh
+GOOGLE_API_KEY="your_api_key" PORT=8501 make run
+```
+
+To remove the compiled program:
+
+```sh
+make clean
+```
+
+## Notes
+
+- Requests are handled sequentially by a small built-in HTTP/1.1 server. The browser form uses ordinary URL-encoded POSTs; no client-side JavaScript is needed.
+- The API key is sent to `curl` as an `x-goog-api-key` header through a transient pipe-backed config descriptor—not as a command-line argument or a file on disk.
+- Student questions are sent to Google's Gemini API to generate an answer. Avoid entering sensitive personal information.
